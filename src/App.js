@@ -1,23 +1,26 @@
 import logo from './logo.svg';
 import './App.css';
+import Playground from './component/playground';
+import List from './component/List';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import MemberForm from './component/MembersForm';
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <List />
+  },
+  {
+    path: '/members',
+    element: <MemberForm />
+  }
+]);
 
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {/* <Playground /> */}
+      <RouterProvider router={router} />
     </div>
   );
 }
