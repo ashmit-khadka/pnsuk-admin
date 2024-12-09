@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { get, set, useForm } from "react-hook-form";
-import MemberForm from "./MembersForm";
+import { useLocation } from 'react-router-dom';
+import { getArticle } from "../service/services";
 
 const ArticleForm = (props) => {
   const { selectedArticle } = props;
+  const { state } = useLocation();
+  const mode = state?.id ? "edit" : "add";
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm({
     defaultValues: {
@@ -23,6 +26,7 @@ const ArticleForm = (props) => {
 
   const [selectedImages, setSelectedImages] = useState([]);
 
+  // submit form
   const onSubmit = async (data) => {
     const formData = new FormData();
 
@@ -104,6 +108,15 @@ const ArticleForm = (props) => {
     }
   }, [selectedArticle]);
 
+  useEffect(() => {
+    if (state?.id) {
+      getArticle(state.id).then((data) => {
+        reset(data);
+        setSelectedImages(data.images);
+      });
+    }
+  }, [state]);
+
   return (
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -183,11 +196,12 @@ const ArticleForm = (props) => {
           {selectedImages.map((image, index) => (
             <div key={index}>
               <span>{image.name || image.image}</span>
+              <img src={`http://localhost:3000/assets/images/${image.image}`} alt={image.image} />
               <button type="button" onClick={() => handleDeleteImage(index)}>Delete</button>
             </div>
           ))}
         </div>
-        <button type="submit">Upload</button>
+        <button type="submit">{mode === "edit" && "Update" || mode === "add" && "Add" }</button>
       </form>
       <button onClick={() => {}}>Delete</button>
       <button onClick={() => {}}>Update</button>
@@ -196,84 +210,5 @@ const ArticleForm = (props) => {
   );
 };
 
-//export default ImageUpload;
 
-const getAllArticles = async () => {
-  const response = await axios.get("http://localhost:3001/articles");
-  return response.data;
-}
-
-const getAllArticleSelectionItems = async () => {
-  const response = await getAllArticles();
-  const seletionItems = response.data.map((item) => ({
-    id: item.id,
-    text: item.title
-  }));
-  return seletionItems;
-}
-
-const getArticle = async (id) => {
-  const response = await axios.get(`http://localhost:3001/article/${id}`);
-  return response.data;
-}
-
-const getAllMembers = async () => {
-  const response = await axios.get("http://localhost:3001/members");
-  return response.data;
-}
-
-
-const getAllMemberSelectionItems = async () => {
-  const response = await getAllMembers();
-  const seletionItems = response.data.map((item) => ({
-    id: item.id,
-    text: item.name
-  }));
-  return seletionItems;
-}
-
-const getMember = async (id) => {
-  const response = await axios.get(`http://localhost:3001/member/${id}`);
-  return response.data;
-}
-
-
-const FormWrapper = () => {
-  const [items, setItems] = useState([]);
-  const [selectedItem, setSelectedItem] = useState(null);
-
-  const getAllItems = getAllMemberSelectionItems;
-  const getItem = getMember;
-
-
-  const handleSelectItem = (e) => {
-    const id = e.target.value;
-    getItem(id).then((item) => {
-      console.log(id, item);
-      setSelectedItem(item);
-    });
-  };
-
-  useEffect(() => {
-    getAllItems().then((items) => {
-      setItems(items);
-    });
-  }, []);
-
-  return (
-    <div>
-      <select
-        onChange={(e) => handleSelectItem(e)}
-      >
-        {items.map((item) => (
-          <option key={item.id} value={item.id}>{item.text}</option>
-        ))}
-      </select>
-
-      {/* <ArticleForm selectedArticle={selectedItem} /> */}
-      <MemberForm selectedArticle={selectedItem} />
-    </div>
-  );
-}
-
-export default FormWrapper;
+export default ArticleForm;

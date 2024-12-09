@@ -10,7 +10,7 @@ const multer = require("multer");
 // Set up storage with Multer
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // Set upload folder
+    cb(null, 'public/assets/images/'); // Set upload folder
   },
   filename: (req, file, cb) => {
     // file name should be unique, use uuidv4 and use original file extension
@@ -145,36 +145,23 @@ app.post('/article', upload.array("images", 10), (req, res) => {
 
 // Endpoint to handle multiple files and text data upload
 app.post("/upload", upload.array("images", 10), (req, res) => {
-  const {
-    id,
-    title,
-    text,
-    date,
-    is_event,
-    is_aid,
-    is_guest,
-    is_project,
-    is_home,
-    is_sport,
-  } = req.body;
-  const images = { new: req.files, old: req.body.existing_images };
 
   if (!req.files) {
     return res.status(400).send("No files were uploaded.");
   }
 
   const newArticle = {
-    id,
-    title,
-    text,
-    date,
-    is_event,
-    is_aid,
-    is_guest,
-    is_project,
-    is_home,
-    is_sport,
-    images,
+    id: req.body.id,
+    title: req.body.title,
+    text: req.body.text,
+    date: req.body.date,
+    is_event: req.body.is_event,
+    is_aid: req.body.is_aid,
+    is_guest: req.body.is_guest,
+    is_project: req.body.is_project,
+    is_home: req.body.is_home,
+    is_sport: req.body.is_sport,
+    images: { new: req.files, old: req.body.existing_images },
   };
 
   if (id) {
@@ -269,6 +256,28 @@ app.put('/articles/clear', (req, res) => {
  * }
  */
 
+const db_exec = async ({
+  reqestSQL,
+  returnSQL,
+}) => {
+  return new Promise((resolve, reject) => {
+    db.serialize(() => {
+      db.run(reqestSQL, function(err) {
+        if (err) {
+          return reject(err);
+        }
+        db.get(returnSQL, (err, row) => {
+          if (err) {
+            return reject(err);
+          }
+          resolve(row);
+        });
+      });
+    });
+  });
+
+}
+
 const creatMember = (member) => {
   const memberId = uuidv4();
 
@@ -277,11 +286,13 @@ const creatMember = (member) => {
   });
 };
 
-const updateMember = (member) => {
-  db.serialize(() => {
-    db.run('UPDATE members SET name = ?, image = ?, position = ?, "order" = ? WHERE id = ?;', [member.name, member.image, member.position, member.order, member.id]);
+const updateMember = async (member) => {
+  return await db_exec({
+    reqestSQL: `UPDATE members SET name = '${member.name}', image = '${member.image}', position = '${member.position}', "order" = ${member.order} WHERE id = '${member.id}';`,
+    returnSQL: `SELECT * FROM members WHERE id = '${member.id}';`,
   });
 };
+
 
 const deleteMember = (id) => {
   db.serialize(() => {
@@ -323,7 +334,7 @@ app.post("/member", upload.single("image"), (req, res) => {
 
   const member = {
     name,
-    image: image.filename,
+    image: image?.filename || '',
     position,
     order,
   };
@@ -333,13 +344,19 @@ app.post("/member", upload.single("image"), (req, res) => {
   res.status(201).send('Member created');
 });
 
-app.put('/member/:id', (req, res) => {
-  const member = req.body;
-
-  updateMember(member);
-
-  res.status(200).send('Member updated');
+app.put("/member/:id", upload.single("image"), async (req, res) => {
+  const member = {
+    id: req.body?.id,
+    name: req.body?.name,
+    image: req.file?.filename || '',
+    position: req.body?.position,
+    order: req.body?.order,
+  };
+  
+  const updatedMember = await updateMember(member);
+  res.json(updatedMember);
 });
+
 
 app.delete('/member/:id', (req, res) => {
   deleteMember(req.params.id);
@@ -435,8 +452,8 @@ app.get('/reset', (req, res) => {
     // insert default data
     db.run('INSERT INTO members (id, name, image, position, "order") VALUES (?, ?, ?, ?, ?);', [uuidv4(), 'John Doe', 'john-doe.jpg', 'CEO', 1]);
     db.run('INSERT INTO members (id, name, image, position, "order") VALUES (?, ?, ?, ?, ?);', [uuidv4(), 'Jane Doe', 'jane-doe.jpg', 'CTO', 2]);
-    db.run('INSERT INTO articles (id, title, date, text, is_event, is_aid, is_guest, is_project, is_home, is_sport) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);', [uuidv4(), 'Welcome to our website', '2021-01-01', 'Welcome to our website', 1, 0, 0, 0, 0, 0]);
-    db.run('INSERT INTO articles (id, title, date, text, is_event, is_aid, is_guest, is_project, is_home, is_sport) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);', [uuidv4(), 'Our mission', '2021-01-02', 'Our mission', 0, 1, 0, 0, 0, 0]);
+    db.run('INSERT INTO articles (id, title, date, text, is_event, is_aid, is_guest, is_project, is_home, is_sport) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);', [uuidv4(), 'Welcome to our website', '2021-01-01', 'Welcome to our website', 'true', 'false', 'false', 'false', 'false', 'false']);
+    db.run('INSERT INTO articles (id, title, date, text, is_event, is_aid, is_guest, is_project, is_home, is_sport) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);', [uuidv4(), 'Our mission', '2021-01-02', 'Our mission', 'false', 'true', 'false', 'false', 'false', 'false']);
     db.run('INSERT INTO minutes (id, file, date, description, "order") VALUES (?, ?, ?, ?, ?);', [uuidv4(), 'minutes-2021-01-01.pdf', '2021-01-01', 'Minutes of the meeting on 2021-01-01', 1]);
     db.run('INSERT INTO minutes (id, file, date, description, "order") VALUES (?, ?, ?, ?, ?);', [uuidv4(), 'minutes-2021-01-02.pdf', '2021-01-02', 'Minutes of the meeting on 2021-01-02', 2]);
   }

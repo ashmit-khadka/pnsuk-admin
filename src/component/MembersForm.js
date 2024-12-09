@@ -4,6 +4,11 @@ import { useForm } from "react-hook-form";
 import { useLocation } from 'react-router-dom';
 import { getMember } from "../service/services";
 
+const FORM_MODE = {
+  CREATE: "create",
+  UPDATE: "update",
+}
+
 const MemberForm = (props) => {
   const { selectedArticle } = props;
   const { state } = useLocation();
@@ -18,6 +23,7 @@ const MemberForm = (props) => {
   });
 
   const [selectedImage, setSelectedImage] = useState(null);
+  const [mode, setMode] = useState(FORM_MODE.CREATE);
 
   const onSubmit = async (data) => {
     const formData = new FormData();
@@ -34,12 +40,23 @@ const MemberForm = (props) => {
       formData.append("existing_image", data.image);
     }
 
+    if (mode === FORM_MODE.UPDATE) {
+      formData.append("id", state.id);
+    }
+
     try {
-      const response = await axios.post("http://localhost:3001/member", formData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
-      console.log(response.data);
-      reset(); // Clear the form after successful submission
+      let response;
+      if (mode === FORM_MODE.CREATE) {
+        response = await axios.post("http://localhost:3001/member", formData, {
+          headers: { "Content-Type": "multipart/form-data" }
+        });
+      } else if (mode === FORM_MODE.UPDATE) {
+        response = await axios.put(`http://localhost:3001/member/${state.id}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" }
+        });
+      }
+
+      reset(response.data); // Clear the form after successful submission
       setSelectedImage(null); // Clear the selected image
     } catch (error) {
       console.error("Error uploading files and text data:", error);
@@ -63,14 +80,20 @@ const MemberForm = (props) => {
     }
   }, [selectedArticle]);
 
- useEffect(() => {
+  useEffect(() => {
     if (state?.id) {
       getMember(state.id).then((data) => {
         reset(data);
+        setSelectedImage({
+          name: data.image,
+          preview: `http://localhost:3000/assets/images/${data.image}`
+        })
+        setMode(FORM_MODE.UPDATE);
       });
     }
+  }, [state]);
 
- }, [state]);
+  console.log(mode);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -110,12 +133,12 @@ const MemberForm = (props) => {
         {selectedImage && (
           <div>
             <span>{selectedImage.name}</span>
-            <img src={(URL.createObjectURL(selectedImage))} alt="Selected" className="w-32 h-32 object-cover" />
+            <img src={selectedImage.preview || URL.createObjectURL(selectedImage)} alt="Selected" className="w-32 h-32 object-cover" />
             <button type="button" onClick={handleDeleteImage}>Delete</button>
           </div>
         )}
       </div>
-      <button type="submit">Upload</button>
+      <button type="submit">Save</button>
     </form>
   );
 };
