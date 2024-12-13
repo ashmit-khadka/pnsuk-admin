@@ -1,6 +1,7 @@
 
 import axios from "axios";
 
+
 const getAllArticles = async () => {
   const response = await axios.get("http://localhost:3001/articles");
   return response.data;
@@ -25,7 +26,6 @@ const getAllMembers = async () => {
   return response.data;
 }
 
-
 const getAllMemberSelectionItems = async () => {
   const response = await getAllMembers();
   const seletionItems = response.data.map((item) => ({
@@ -40,6 +40,17 @@ const getMember = async (id) => {
   return response.data;
 }
 
+
+const getAllMinutes = async () => {
+  const response = await axios.get("http://localhost:3001/minutes");
+  return response.data;
+}
+
+const getEvents = async () => {
+  const response = await axios.get("http://localhost:3001/events");
+  return response.data;
+}
+
 export {
   getAllArticleSelectionItems,
   getAllMemberSelectionItems,
@@ -47,4 +58,6 @@ export {
   getAllMembers,
   getArticle,
   getMember,
+  getAllMinutes,
+  getEvents,
 }

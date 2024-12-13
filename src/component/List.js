@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { getAllArticles, getAllMembers } from "../service/services";
+import { getAllArticles, getAllMembers, getAllMinutes, getEvents } from "../service/services";
 import { useNavigate } from "react-router-dom";
 
 const List = () => {
   const [members, setMembers] = useState([]);
   const [articles, setArticles] = useState([]);
+  const [minutes, setMinutes] = useState([]);
+  const [events, setEvents] = useState([]);
 
   const navigate = useNavigate();
 
@@ -28,14 +30,34 @@ const List = () => {
     const articleObjects = articles.map(article => {
       return {
         id: article.id,
-        title: article.title,
-        date: article.date,
+        title: article.title, 
+        file: article.title,
+        description: article.date,
         image: article.image,
         content: article.content,
         image: article.images[0]?.image || "",
       };
     });
     setArticles(articleObjects);
+  }
+
+  const getMinutes = async () => {
+    const minutes = await getAllMinutes();
+    const minuteObjects = minutes.map(minute => {
+      return {
+        id: minute.id,
+        title: minute.title,
+        description: minute.description,
+        date: minute.date,
+        file: minute.file,
+      };
+    });
+    setMinutes(minuteObjects);
+  }
+
+  const getEventsItems = async () => {
+    const events = await getEvents();
+    setEvents(events);
   }
 
   const generateMembersTableRows = () => {
@@ -83,9 +105,52 @@ const List = () => {
     });
   }
 
+  const generateMinutesTableRows = () => {
+    return minutes.map((minute, index) => {
+      return (
+        <tr key={index}>
+          <td>{minute.title}</td>
+          <td>{minute.description}</td>
+          <td>{minute.date}</td>
+          <td>{minute.file}</td>
+          <td>
+            <button
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
+              onClick={() => navigate(`/minute/`, { state: { id: minute.id } })}   
+            >Edit</button>
+            <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded ml-2">Delete</button>
+          </td>
+        </tr>
+      );
+    });
+  }
+
+  const generateEventsTableRows = () => {
+    return events.map((event, index) => {
+      return (
+        <tr key={index}>
+          <td>{event.title}</td>
+          <td>{event.description}</td>
+          <td>{event.date}</td>
+          <td>{event.location}</td>
+          <td>{event.contact}</td>
+          <td>
+            <button
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
+              onClick={() => navigate(`/events/`, { state: { id: event.id } })}   
+            >Edit</button>
+            <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded ml-2">Delete</button>
+          </td>
+        </tr>
+      );
+    });
+  }
+
   useEffect(() => {
     getMembers();
     getArticles();
+    getMinutes();
+    getEventsItems();
   }, []);
 
   return (
@@ -130,6 +195,54 @@ const List = () => {
           </thead>
           <tbody>
             {generateMembersTableRows()}
+          </tbody>
+        </table>
+        <div className="flex justify-between items-center mt-4">
+          <h2 className="text-2xl font-semibold mt-4">Minutes</h2>
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded mt-2"
+            onClick={() => navigate(`/minute/`)}
+          >Add Minute</button>
+          </div>
+
+        <table className="min-w-full bg-white border border-gray-200 mt-4">
+          <thead>
+            <tr>
+              <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Title</th>
+              <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Description</th>
+              <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Date</th>
+
+              <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">File</th>
+              <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {generateMinutesTableRows()}
+          </tbody>
+        </table>
+
+        <div className="flex justify-between items-center mt-4">
+          <h2 className="text-2xl font-semibold mt-4">Events</h2>
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded mt-2"
+            onClick={() => navigate(`/events/`)}
+          >Add Event</button>
+          </div>
+
+
+        <table className="min-w-full bg-white border border-gray-200 mt-4">
+          <thead>
+            <tr>
+              <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Title</th>
+              <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Description</th>
+              <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Date</th>
+              <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Location</th>
+              <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Contact</th>
+              <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {generateEventsTableRows()}
           </tbody>
         </table>
       </div>

@@ -5,10 +5,16 @@ import List from './component/List';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import MemberForm from './component/MembersForm';
 import ArticleForm from './component/ArticleForm';
+import MinutesForm from './component/MinutesForm';
+import Login from './component/Login';
 
 const router = createBrowserRouter([
   {
     path: '/',
+    element: <Login />
+  },
+  {
+    path: '/list',
     element: <List />
   },
   {
@@ -18,6 +24,10 @@ const router = createBrowserRouter([
   {
     path: '/article',
     element: <ArticleForm />
+  },
+  {
+    path: '/minute',
+    element: <MinutesForm />
   }
 ]);
 
