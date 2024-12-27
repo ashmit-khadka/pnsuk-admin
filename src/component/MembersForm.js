@@ -55,7 +55,6 @@ const MemberForm = (props) => {
           headers: { "Content-Type": "multipart/form-data" }
         });
       }
-
       reset(response.data); // Clear the form after successful submission
       setSelectedImage(null); // Clear the selected image
     } catch (error) {

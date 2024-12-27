@@ -4,7 +4,6 @@ const { v4: uuidv4 } = require('uuid');
 const cors = require('cors');
 const app = express();
 const port = 3001;
-const bodyParser = require('body-parser');
 const multer = require("multer");
 
 // Set up storage with Multer
@@ -469,6 +468,14 @@ const getEvents = async () => {
   return events;
 }
 
+const createEvent = async (event) => {
+  const eventId = uuidv4();
+
+  db.serialize(() => {
+    db.run('INSERT INTO events (id, title, description, date, location, contact) VALUES (?, ?, ?, ?, ?, ?);', [eventId, event.title, event.description, event.date, event.location, event.contact]);
+  });
+};
+
 
 app.get('/events', (req, res) => {
   getEvents().then(events => {
@@ -477,7 +484,29 @@ app.get('/events', (req, res) => {
     console.error(err.message);
     res.status(500).send(err.message);
   });
-})
+});
+
+app.post("/events", (req, res) => {
+  const {
+    title,
+    description,
+    date,
+    location,
+    contact,
+  } = req.body;
+
+  const event = {
+    title,
+    description,
+    date,
+    location,
+    contact,
+  };
+
+  createEvent(event);
+
+  res.status(201).send('Event created');
+});
 
 app.get('/test', async (req, res) => {
 
@@ -557,10 +586,11 @@ app.get('/test', async (req, res) => {
  
   events.forEach(async event => {
     const eventId = uuidv4();
-    await dbRunAsync('INSERT INTO events (id, title, description, date, "location", "contact") VALUES (?, ?, ?, ?, ?, ?);', db, [eventId, event.title, event.description, event.date, event.location, event.contact]);
+    await dbRunAsync('INSERT INTO events (id, title, description, date, location, contact) VALUES (?, ?, ?, ?, ?, ?);', db, [eventId, event.title, event.description, event.date, event.location, event.contact]);
   });
 
-  minutes.forEach(async minute => {
+  minutes.forEach(async minute => 
+  {
     const minuteId = uuidv4();
     const formatedFile = minute.file.split('minute_docs/').join('');
     await dbRunAsync('INSERT INTO minutes (id, title, file, description, date) VALUES (?, ?, ?, ?, ?);', db, [minuteId, formatedFile, formatedFile, minute.description, minute.date]);
@@ -588,7 +618,6 @@ app.post('/login', async (req, res) => {
     res.status(401).send('Login failed');
   }
 });
-
 
 
 // Start the server

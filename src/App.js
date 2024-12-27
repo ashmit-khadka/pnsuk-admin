@@ -6,6 +6,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import MemberForm from './component/MembersForm';
 import ArticleForm from './component/ArticleForm';
 import MinutesForm from './component/MinutesForm';
+import EventForm from './component/EventForm';
 import Login from './component/Login';
 
 const router = createBrowserRouter([
@@ -28,7 +29,12 @@ const router = createBrowserRouter([
   {
     path: '/minute',
     element: <MinutesForm />
+  },
+  {
+    path: '/event',
+    element: <EventForm />
   }
+
 ]);
 
 function App() {
