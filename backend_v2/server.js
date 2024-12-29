@@ -24,7 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 // Connect to the database
-const db = new sqlite3.Database('C:/Users/44784/Code - Work/pnsuk-admin/backend_v2/db.sqlite3', (err) => {
+const db = new sqlite3.Database('C:/Users/ashmi/Documents/Projects/test/pnsuk-react-admin/backend_v2/db.sqlite3', (err) => {
   if (err) {
     console.error(err.message);
     return;
