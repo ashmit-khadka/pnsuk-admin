@@ -52,13 +52,14 @@ const EventForm = (props) => {
       let response;
       if (mode === FORM_MODE.CREATE) {
         response = await axios.post("http://localhost:3001/events", formData, {
-          headers: { "Content-Type": "multipart/form-data" }
+          headers: { "Content-Type": "application/json" }
         });
       } else if (mode === FORM_MODE.UPDATE) {
         response = await axios.put(`http://localhost:3001/events/${state.id}`, formData, {
-          headers: { "Content-Type": "multipart/form-data" }
+          headers: { "Content-Type": "application/json" }
         });
-      }
+
+     }
 
       //reset(response.data); // Clear the form after successful submission
       //setSelectedImage(null); // Clear the selected image
