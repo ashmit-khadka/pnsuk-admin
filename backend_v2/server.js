@@ -476,6 +476,18 @@ const createEvent = async (event) => {
   });
 };
 
+const deleteEvent = async (id) => {
+  db.serialize(() => {
+    db.run('DELETE from events where events.id=?', [id]);
+  });
+}
+
+const updateEvent = async (event) => {
+  db.serialize(() => {
+    db.run('UPDATE events SET title = ?, description = ?, date = ?, location = ?, contact = ? WHERE id = ?;', [event.title, event.description, event.date, event.location, event.contact, event.id]);
+  });
+}
+
 
 app.get('/events', (req, res) => {
   getEvents().then(events => {
@@ -506,6 +518,39 @@ app.post("/events", (req, res) => {
   createEvent(event);
 
   res.status(201).send('Event created');
+});
+
+app.put("/event/:id", async (req, res) => {
+  const event = {
+    id: req.body?.id,
+    title: req.body?.title,
+    description: req.body?.description,
+    location: req.body?.location,
+    contact: req.body?.contact,
+  };
+
+  const updatedMember = await updateEvent(event);
+  res.json(updatedMember);
+});
+
+app.put("/member/:id", upload.single("image"), async (req, res) => {
+  const member = {
+    id: req.body?.id,
+    name: req.body?.name,
+    image: req.file?.filename || '',
+    position: req.body?.position,
+    order: req.body?.order,
+  };
+
+  const updatedMember = await updateMember(member);
+  res.json(updatedMember);
+});
+
+app.delete('/events/:id', (req, res ) => 
+{
+  deleteEvent(req.params.id);
+
+  res.status(200).send('Event deleted');
 });
 
 app.get('/test', async (req, res) => {

@@ -3,6 +3,7 @@ import axios from "axios";
 import { useForm } from "react-hook-form";
 import { useLocation } from 'react-router-dom';
 import { getMember } from "../service/services";
+import { useNavigate } from "react-router-dom";
 import FormFieldTextbox from "./form/FormFieldTextbox";
 import FormFieldDate from "./form/FormFieldDate";
 
@@ -14,6 +15,8 @@ const FORM_MODE = {
 const EventForm = (props) => {
   const { selectedArticle } = props;
   const { state } = useLocation();
+
+  const navigate = useNavigate();
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm({
     defaultValues: {
@@ -55,7 +58,7 @@ const EventForm = (props) => {
           headers: { "Content-Type": "application/json" }
         });
       } else if (mode === FORM_MODE.UPDATE) {
-        response = await axios.put(`http://localhost:3001/events/${state.id}`, formData, {
+        response = await axios.put(`http://localhost:3001/event/${state.id}`, formData, {
           headers: { "Content-Type": "application/json" }
         });
 
@@ -63,6 +66,7 @@ const EventForm = (props) => {
 
       //reset(response.data); // Clear the form after successful submission
       //setSelectedImage(null); // Clear the selected image
+      navigate(`/list/`);
     } catch (error) {
       console.error("Error uploading files and text data:", error);
     }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { getAllArticles, getAllMembers, getAllMinutes, getEvents } from "../service/services";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const List = () => {
   const [members, setMembers] = useState([]);
@@ -125,6 +126,16 @@ const List = () => {
     });
   }
 
+  const onDeleteEvent = async (event) => 
+  {
+
+    try{
+      await axios.delete(`http://localhost:3001/events/${event.id}`);
+    } catch (error){
+      console.error("Error deleting event data:", error);
+    }
+  }
+
   const generateEventsTableRows = () => {
     return events.map((event, index) => {
       return (
@@ -137,14 +148,19 @@ const List = () => {
           <td>
             <button
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
-              onClick={() => navigate(`/events/`, { state: { id: event.id } })}   
+              onClick={() => navigate(`/event/`, { state: { id: event.id } })}   
             >Edit</button>
-            <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded ml-2">Delete</button>
+            <button onClick={() => onDeleteEvent(event)} className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded ml-2">Delete</button>
           </td>
         </tr>
       );
     });
   }
+
+  useEffect(() => {
+    getEventsItems();
+  }, [events]);
+
 
   useEffect(() => {
     getMembers();
