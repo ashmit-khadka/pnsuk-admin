@@ -4,7 +4,6 @@ const { v4: uuidv4 } = require('uuid');
 const cors = require('cors');
 const app = express();
 const port = 3001;
-const bodyParser = require('body-parser');
 const multer = require("multer");
 
 // Set up storage with Multer
@@ -469,6 +468,26 @@ const getEvents = async () => {
   return events;
 }
 
+const createEvent = async (event) => {
+  const eventId = uuidv4();
+
+  db.serialize(() => {
+    db.run('INSERT INTO events (id, title, description, date, location, contact) VALUES (?, ?, ?, ?, ?, ?);', [eventId, event.title, event.description, event.date, event.location, event.contact]);
+  });
+};
+
+const deleteEvent = async (id) => {
+  db.serialize(() => {
+    db.run('DELETE from events where events.id=?', [id]);
+  });
+}
+
+const updateEvent = async (event) => {
+  db.serialize(() => {
+    db.run('UPDATE events SET title = ?, description = ?, date = ?, location = ?, contact = ? WHERE id = ?;', [event.title, event.description, event.date, event.location, event.contact, event.id]);
+  });
+}
+
 
 app.get('/events', (req, res) => {
   getEvents().then(events => {
@@ -477,7 +496,62 @@ app.get('/events', (req, res) => {
     console.error(err.message);
     res.status(500).send(err.message);
   });
-})
+});
+
+app.post("/events", (req, res) => {
+  const {
+    title,
+    description,
+    date,
+    location,
+    contact,
+  } = req.body;
+
+  const event = {
+    title,
+    description,
+    date,
+    location,
+    contact,
+  };
+
+  createEvent(event);
+
+  res.status(201).send('Event created');
+});
+
+app.put("/event/:id", async (req, res) => {
+  const event = {
+    id: req.body?.id,
+    title: req.body?.title,
+    description: req.body?.description,
+    location: req.body?.location,
+    contact: req.body?.contact,
+  };
+
+  const updatedMember = await updateEvent(event);
+  res.json(updatedMember);
+});
+
+app.put("/member/:id", upload.single("image"), async (req, res) => {
+  const member = {
+    id: req.body?.id,
+    name: req.body?.name,
+    image: req.file?.filename || '',
+    position: req.body?.position,
+    order: req.body?.order,
+  };
+
+  const updatedMember = await updateMember(member);
+  res.json(updatedMember);
+});
+
+app.delete('/events/:id', (req, res ) => 
+{
+  deleteEvent(req.params.id);
+
+  res.status(200).send('Event deleted');
+});
 
 app.get('/test', async (req, res) => {
 
@@ -557,10 +631,11 @@ app.get('/test', async (req, res) => {
  
   events.forEach(async event => {
     const eventId = uuidv4();
-    await dbRunAsync('INSERT INTO events (id, title, description, date, "location", "contact") VALUES (?, ?, ?, ?, ?, ?);', db, [eventId, event.title, event.description, event.date, event.location, event.contact]);
+    await dbRunAsync('INSERT INTO events (id, title, description, date, location, contact) VALUES (?, ?, ?, ?, ?, ?);', db, [eventId, event.title, event.description, event.date, event.location, event.contact]);
   });
 
-  minutes.forEach(async minute => {
+  minutes.forEach(async minute => 
+  {
     const minuteId = uuidv4();
     const formatedFile = minute.file.split('minute_docs/').join('');
     await dbRunAsync('INSERT INTO minutes (id, title, file, description, date) VALUES (?, ?, ?, ?, ?);', db, [minuteId, formatedFile, formatedFile, minute.description, minute.date]);
@@ -588,7 +663,6 @@ app.post('/login', async (req, res) => {
     res.status(401).send('Login failed');
   }
 });
-
 
 
 // Start the server
